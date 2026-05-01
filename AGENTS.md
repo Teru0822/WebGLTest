@@ -22,6 +22,8 @@
   * Photon Fusionに関する仕様や、プロジェクト進行で得られた重要な情報、不要・非推奨なアプローチなどを蓄積するナレッジベース。
 * [**SimulationDesign.md**](./Docs/Rules/SimulationDesign.md)
   * 地震のシミュレーション仕様、オブジェクト配置、揺れの制御、プレイヤーのインタラクションについて。
+* [**CustomPhysicsSetup.md**](./Docs/Rules/CustomPhysicsSetup.md)
+  * 今回独自に実装した超軽量な物理演算システム（Custom XZ Physics）のセットアップ手順。
 
 ## 3. エージェントへの指示（AIプロンプト時の注意事項）
 * **優先事項**: 変更を加える前に、必ず上記の関連ルールファイルを確認してください。

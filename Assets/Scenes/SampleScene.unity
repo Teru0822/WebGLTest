@@ -31766,7 +31766,6 @@ GameObject:
   - component: {fileID: 807529402}
   - component: {fileID: 807529401}
   - component: {fileID: 807529400}
-  - component: {fileID: 807529399}
   - component: {fileID: 807529403}
   m_Layer: 0
   m_Name: plane
@@ -31775,28 +31774,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!64 &807529399
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 807529398}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &807529400
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -82161,74 +82138,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4375112962937895513, guid: cbbff651427646d43b0609c215c4bcf9, type: 3}
   m_PrefabInstance: {fileID: 2087131127}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2087847218
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2087847221}
-  - component: {fileID: 2087847220}
-  - component: {fileID: 2087847219}
-  m_Layer: 0
-  m_Name: EarthquakeManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2087847219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2087847218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1284554765
-  ObjectInterest: 1
-  Flags: 786433
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 2087847220}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &2087847220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2087847218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3abdad9c0ccde149833366492e7599c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WebGLTest.Physics.EarthquakeManager
-  _IsQuaking:
-    _value: 0
-  intensity: 10
-  forceInterval: 0.1
---- !u!4 &2087847221
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2087847218}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.42136, y: 3.48915, z: -8.99678}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2090515150
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -84071,6 +83980,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4375112962937895513, guid: cbbff651427646d43b0609c215c4bcf9, type: 3}
   m_PrefabInstance: {fileID: 2143346007}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &353666148906137045
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1480607052710073528, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_Name
+      value: EarthquakeManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.42136
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.48915
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -8.99678
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042815590027934896, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6435866393563940548, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
+      propertyPath: SortKey
+      value: 3128060019
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0dd3efa2cef1d854d83e43a2e6446376, type: 3}
 --- !u!1001 &5011396618824136390
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -84171,4 +84141,4 @@ SceneRoots:
   - {fileID: 325796529}
   - {fileID: 807529402}
   - {fileID: 874095554}
-  - {fileID: 2087847221}
+  - {fileID: 353666148906137045}
