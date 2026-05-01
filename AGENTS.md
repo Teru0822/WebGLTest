@@ -18,6 +18,8 @@
   * AIエージェントとの協調開発ルール、コーディングスタイル、タスク進行方法について。
 * [**PhotonArchitecture.md**](./Docs/Rules/PhotonArchitecture.md)
   * Photon Fusionの構成（Server/Clientモード）、サーバー側物理演算の設計、ネットワーク同期のルールについて。
+* [**PhotonFusionKnowledge.md**](./Docs/Rules/PhotonFusionKnowledge.md)
+  * Photon Fusionに関する仕様や、プロジェクト進行で得られた重要な情報、不要・非推奨なアプローチなどを蓄積するナレッジベース。
 * [**SimulationDesign.md**](./Docs/Rules/SimulationDesign.md)
   * 地震のシミュレーション仕様、オブジェクト配置、揺れの制御、プレイヤーのインタラクションについて。
 
