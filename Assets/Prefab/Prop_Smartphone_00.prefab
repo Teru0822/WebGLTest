@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3882000072990842838}
   - component: {fileID: 4136148742878914639}
   - component: {fileID: 2775882693085001978}
+  - component: {fileID: 946588208944174384}
   m_Layer: 0
   m_Name: Prop_Smartphone_00
   m_TagString: Untagged
@@ -112,6 +113,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 4136148742878914639}
+  - {fileID: 946588208944174384}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &3882000072990842838
 Rigidbody:
@@ -184,3 +186,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.13598298, y: 0.26400006, z: 0.029285654}
   m_Center: {x: -0.0019914845, y: 1.9673055e-11, z: -0.004082814}
+--- !u!114 &946588208944174384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4675659375819082955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e3d3b07380dbac41b95e6122ec7def0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebGLTest.Physics.ClientColliderDisabler

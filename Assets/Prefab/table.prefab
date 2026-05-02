@@ -68,6 +68,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
       insertIndex: -1
       addedObject: {fileID: -7545249379800916188}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3127166863793479270}
   m_SourcePrefab: {fileID: 100100000, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
 --- !u!1 &6758527969503277923 stripped
 GameObject:
@@ -114,6 +117,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: -7545249379800916188}
+  - {fileID: 3127166863793479270}
   ForceRemoteRenderTimeframe: 0
 --- !u!54 &-6325574451654408362
 Rigidbody:
@@ -165,3 +169,15 @@ MonoBehaviour:
     Position: 0.01
     Rotation: 0.01
     Scale: 0.01
+--- !u!114 &3127166863793479270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6758527969503277923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e3d3b07380dbac41b95e6122ec7def0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebGLTest.Physics.ClientColliderDisabler

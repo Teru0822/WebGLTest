@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3334513239156908729}
   - component: {fileID: 3137450795517569425}
   - component: {fileID: 8452644911669797354}
+  - component: {fileID: 4941379948517632698}
   m_Layer: 0
   m_Name: Prop_Notebook_00
   m_TagString: Untagged
@@ -163,6 +164,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3163066415712456653}
+  - {fileID: 4941379948517632698}
   ForceRemoteRenderTimeframe: 0
 --- !u!65 &3137450795517569425
 BoxCollider:
@@ -206,3 +208,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.42258486, y: 0.041135106, z: 0.36114877}
   m_Center: {x: -0.00000004325178, y: 0.02056754, z: -0.11757423}
+--- !u!114 &4941379948517632698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5558853298665391852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e3d3b07380dbac41b95e6122ec7def0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebGLTest.Physics.ClientColliderDisabler
