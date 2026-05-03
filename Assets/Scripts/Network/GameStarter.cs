@@ -46,6 +46,43 @@ namespace WebGLTest.Network
                 _runner = gameObject.AddComponent<NetworkRunner>();
             }
 
+            // Fusion2でNetworkRigidbody3Dを安定動作させるため、RunnerSimulatePhysics3Dを動的に追加
+            System.Type physicsType = System.Type.GetType("Fusion.Addons.Physics.RunnerSimulatePhysics3D, Fusion.Addons.Physics");
+            if (physicsType != null && gameObject.GetComponent(physicsType) == null)
+            {
+                gameObject.AddComponent(physicsType);
+            }
+
+            // パケットロスや通信帯域、Pingなどを画面に詳細表示するためのFusionStatisticsを追加
+            // 注意: FusionStatisticsはEventSystemが無いと自動で古いStandaloneInputModuleを作ってしまいエラーになるため、
+            // 新しいInput System用のモジュールを先に追加しておきます。
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                var eventSystemObj = new GameObject("EventSystem");
+                eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+#if ENABLE_INPUT_SYSTEM
+                eventSystemObj.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+#else
+                eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+#endif
+            }
+
+            var stats = gameObject.GetComponent<Fusion.Statistics.FusionStatistics>();
+            if (stats == null)
+            {
+                stats = gameObject.AddComponent<Fusion.Statistics.FusionStatistics>();
+                
+                // 動的追加時はデフォルトでグラフが1つも表示されない（0）設定になっているため、
+                // リフレクションを使って必要なグラフ（RTT, Bandwidth, Packets等）をオンにします
+                var field = stats.GetType().GetField("_statsEnabled", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null)
+                {
+                    // RTT(4) | InBandwidth(8) | OutBandwidth(16) = 28
+                    // Enum: InPackets=1, OutPackets=2, RTT=4, InBandwidth=8, OutBandwidth=16
+                    field.SetValue(stats, 1 | 2 | 4 | 8 | 16);
+                }
+            }
+
             // ProvideInputはクライアントのみtrueにするのが一般的
             _runner.ProvideInput = true;
 
