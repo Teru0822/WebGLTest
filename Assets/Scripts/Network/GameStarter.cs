@@ -1,44 +1,52 @@
 using UnityEngine;
+using UnityEngine.UI;
 using Fusion;
 using System.Threading.Tasks;
+using WebGLTest.Platform;
 
 namespace WebGLTest.Network
 {
     /// <summary>
-    /// 起動環境を判定し、Photon FusionのNetworkRunnerをServerまたはClientとして起動するクラス
+    /// 起動環境を判定し、Photon FusionのNetworkRunnerをServerまたはClientとして起動するクラス。
+    /// 編集時はHost、WebGLは自動でClientとしてサーバーへ接続。失敗時はリトライ。
     /// </summary>
     public class GameStarter : MonoBehaviour
     {
-        private NetworkRunner _runner;
+        [Tooltip("クライアントが接続失敗した時のリトライ間隔（秒）")]
+        public float clientRetrySeconds = 3f;
 
+        private NetworkRunner _runner;
         private bool _isStarting = false;
+        private Text _statusText;
 
         private void Start()
         {
-            Debug.Log("Ready. Press 'P' key to start Fusion...");
+            ApplyPlatformResolution();
+            CreateStatusUI();
+            StartSimulation();
         }
 
-        private void Update()
+        private void ApplyPlatformResolution()
         {
-            if (_isStarting) return;
-
-#if ENABLE_INPUT_SYSTEM
-            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.pKey.wasPressedThisFrame)
+            // PCはデフォルトの横画面解像度のまま。スマホはブラウザのウィンドウサイズに合わせる。
+            if (PlatformDetect.IsMobile())
             {
-                _isStarting = true;
-                StartSimulation();
+                // CSSピクセル基準でcanvasリサイズ（高DPI端末で過剰な負荷を避けるため）。
+                int w = PlatformDetect.WindowWidthCss();
+                int h = PlatformDetect.WindowHeightCss();
+                if (w > 0 && h > 0)
+                {
+                    Screen.SetResolution(w, h, false);
+                    Debug.Log($"[Mobile] Resolution set to {w}x{h} (CSS pixels)");
+                }
             }
-#else
-            if (UnityEngine.Input.GetKeyDown(KeyCode.P))
-            {
-                _isStarting = true;
-                StartSimulation();
-            }
-#endif
         }
 
         private async void StartSimulation()
         {
+            if (_isStarting) return;
+            _isStarting = true;
+
             // Runnerがなければアタッチ
             _runner = gameObject.GetComponent<NetworkRunner>();
             if (_runner == null)
@@ -46,12 +54,15 @@ namespace WebGLTest.Network
                 _runner = gameObject.AddComponent<NetworkRunner>();
             }
 
-            // Fusion2でNetworkRigidbody3Dを安定動作させるため、RunnerSimulatePhysics3Dを動的に追加
-            System.Type physicsType = System.Type.GetType("Fusion.Addons.Physics.RunnerSimulatePhysics3D, Fusion.Addons.Physics");
-            if (physicsType != null && gameObject.GetComponent(physicsType) == null)
+            // RunnerSimulatePhysics3D をアタッチ（無ければ追加）。
+            // 重要: 既定では ClientPhysicsSimulation = Disabled でクライアント側の物理が一切走らない。
+            // 全ピア決定論シミュレーション設計に合わせて SimulateAlways を強制セットする。
+            var physicsSim = gameObject.GetComponent<Fusion.Addons.Physics.RunnerSimulatePhysics3D>();
+            if (physicsSim == null)
             {
-                gameObject.AddComponent(physicsType);
+                physicsSim = gameObject.AddComponent<Fusion.Addons.Physics.RunnerSimulatePhysics3D>();
             }
+            physicsSim.ClientPhysicsSimulation = Fusion.Addons.Physics.ClientPhysicsSimulation.SimulateAlways;
 
             // パケットロスや通信帯域、Pingなどを画面に詳細表示するためのFusionStatisticsを追加
             // 注意: FusionStatisticsはEventSystemが無いと自動で古いStandaloneInputModuleを作ってしまいエラーになるため、
@@ -71,7 +82,7 @@ namespace WebGLTest.Network
             if (stats == null)
             {
                 stats = gameObject.AddComponent<Fusion.Statistics.FusionStatistics>();
-                
+
                 // 動的追加時はデフォルトでグラフが1つも表示されない（0）設定になっているため、
                 // リフレクションを使って必要なグラフ（RTT, Bandwidth, Packets等）をオンにします
                 var field = stats.GetType().GetField("_statsEnabled", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -91,7 +102,6 @@ namespace WebGLTest.Network
 
 #if UNITY_SERVER || UNITY_EDITOR
             // 専用サーバービルド、またはエディタで特定の引数/設定がある場合はサーバーモードにする
-            // ここでは簡易的に、エディタで実行時はサーバーとして起動する例（適宜変更可能）
             // 実際のWebGLビルドでは UNITY_WEBGL が定義され、必ず Client になります
             if (Application.isBatchMode || Application.platform == RuntimePlatform.LinuxServer || Application.platform == RuntimePlatform.WindowsServer)
             {
@@ -100,15 +110,14 @@ namespace WebGLTest.Network
             }
             else
             {
-                // エディタデバッグ用: サーバーかクライアントか選択できるようにする場合はここをカスタマイズ
-                // 一旦エディタではHostモード（またはClientモード）でテストすることも検討
-                mode = GameMode.Host; 
+                // エディタはHostとして起動（=サーバー兼プレイヤー）。クライアントはこのHostへ接続する。
+                mode = GameMode.Host;
             }
 #elif UNITY_WEBGL
-            // WebGLは必ずClient
             mode = GameMode.Client;
 #endif
 
+            UpdateStatus($"Connecting as {mode}...");
             Debug.Log($"Starting Fusion in mode: {mode}");
 
             var sceneInfo = new NetworkSceneInfo();
@@ -129,11 +138,64 @@ namespace WebGLTest.Network
             if (result.Ok)
             {
                 Debug.Log("Fusion started successfully.");
+                UpdateStatus("Connected.");
+                // 接続できたらしばらくして状態テキストを消す
+                Invoke(nameof(HideStatus), 2f);
             }
             else
             {
-                Debug.LogError($"Failed to start Fusion: {result.ShutdownReason}");
+                Debug.LogWarning($"Failed to start Fusion: {result.ShutdownReason}. Retrying in {clientRetrySeconds:0.0}s.");
+                UpdateStatus($"Server not available ({result.ShutdownReason}). Retrying in {clientRetrySeconds:0.0}s...");
+
+                // クライアントは再試行。サーバー/Hostは再試行しない（恐らく設定エラーなので）。
+                if (mode == GameMode.Client)
+                {
+                    // 古いRunnerを破棄してリトライ
+                    if (_runner != null) Destroy(_runner);
+                    _runner = null;
+                    _isStarting = false;
+                    Invoke(nameof(StartSimulation), clientRetrySeconds);
+                }
             }
+        }
+
+        private void CreateStatusUI()
+        {
+            var canvasObj = new GameObject("ConnectionStatusCanvas");
+            var canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 1000;
+            canvasObj.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasObj.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+            canvasObj.AddComponent<GraphicRaycaster>();
+
+            var textObj = new GameObject("StatusText");
+            textObj.transform.SetParent(canvasObj.transform, false);
+            _statusText = textObj.AddComponent<Text>();
+            _statusText.font = Font.CreateDynamicFontFromOSFont("Arial", 36);
+            _statusText.fontSize = 36;
+            _statusText.alignment = TextAnchor.MiddleCenter;
+            _statusText.color = Color.white;
+            _statusText.raycastTarget = false;
+            var outline = textObj.AddComponent<Outline>();
+            outline.effectColor = Color.black;
+
+            var rt = _statusText.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(1200, 200);
+        }
+
+        private void UpdateStatus(string msg)
+        {
+            if (_statusText != null) _statusText.text = msg;
+        }
+
+        private void HideStatus()
+        {
+            if (_statusText != null) _statusText.text = string.Empty;
         }
     }
 }

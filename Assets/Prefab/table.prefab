@@ -58,9 +58,6 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3147776314827942933}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
-      insertIndex: -1
       addedObject: {fileID: -5284893150112978257}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
       insertIndex: -1
@@ -71,34 +68,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3127166863793479270}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4696281870908768656}
   m_SourcePrefab: {fileID: 100100000, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
 --- !u!1 &6758527969503277923 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
   m_PrefabInstance: {fileID: 5839608169034534450}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &3147776314827942933
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6758527969503277923}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -6317805809608689028, guid: 83aee98af33027941b957a7dbe1f1c40, type: 3}
 --- !u!114 &-5284893150112978257
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,3 +159,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e3d3b07380dbac41b95e6122ec7def0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebGLTest.Physics.ClientColliderDisabler
+--- !u!65 &4696281870908768656
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6758527969503277923}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.020367851, y: 0.019999994, z: 0.23786463}
+  m_Center: {x: 0, y: 0, z: -0.10893232}

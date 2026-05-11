@@ -11,7 +11,9 @@ namespace WebGLTest.Physics
 
     /// <summary>
     /// Unity標準の物理演算（Rigidbody + NetworkRigidbody3D）を用いたリアルな地震シミュレーション。
-    /// 震度と階層を指定することで、実際の地震に近い不規則な揺れ（長周期地震動など）を再現します。
+    /// サーバー権威モデル: サーバーが全Rigidbodyを物理シミュ、クライアントは NetworkRigidbody3D 同期で
+    /// 結果を受け取って描画するだけ。送信レートは NetworkProjectConfig.fusion の ServerSendIndex で
+    /// 調整する（地震中の負荷低減用）。
     /// </summary>
     public class StandardEarthquakeManager : NetworkBehaviour
     {
@@ -22,7 +24,7 @@ namespace WebGLTest.Physics
         [Tooltip("震度 (1.0 〜 7.0)。数値が大きいほど指数関数的に力が強くなります。")]
         [Range(1f, 7f)]
         public float seismicIntensity = 5.0f;
-        
+
         [Tooltip("建物の階層。高層階ほど揺れがゆっくりになり（長周期）、振幅が大きくなります。")]
         [Range(1, 50)]
         public int buildingFloor = 1;
@@ -30,7 +32,7 @@ namespace WebGLTest.Physics
         [Header("Runtime State (Sync)")]
         [Tooltip("Eキーでパターン地震発生")]
         [Networked] public NetworkBool IsQuaking { get; set; }
-        
+
         [Networked] public float QuakeStartTime { get; set; }
 
         [Tooltip("TキーでON/OFFを切り替える単純な横揺れモード")]
@@ -49,15 +51,13 @@ namespace WebGLTest.Physics
 
         public override void Spawned()
         {
-            // WebGLのフレームレートを明示的に60に固定する
             Application.targetFrameRate = 60;
 
             if (Object.HasStateAuthority)
             {
-                // シーン内のすべてのRigidbodyを取得し、初期状態を保存する
                 _rigidbodies = FindObjectsOfType<Rigidbody>();
                 _initialStates = new InitialState[_rigidbodies.Length];
-                
+
                 for (int i = 0; i < _rigidbodies.Length; i++)
                 {
                     _initialStates[i] = new InitialState
@@ -103,34 +103,31 @@ namespace WebGLTest.Physics
                 for (int i = 0; i < _rigidbodies.Length; i++)
                 {
                     if (_rigidbodies[i] == null) continue;
-                    
                     var rb = _rigidbodies[i];
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                     rb.position = _initialStates[i].position;
                     rb.rotation = _initialStates[i].rotation;
                 }
-                return; // リセットしたフレームは地震の力を加えない
+                return;
             }
 
             // Eキー入力の処理
             if (_triggerPatternEarthquake)
             {
-                IsQuaking = true; 
-                QuakeStartTime = Runner.SimulationTime; // 開始時刻をリセット
+                IsQuaking = true;
+                QuakeStartTime = Runner.SimulationTime;
                 _triggerPatternEarthquake = false;
             }
 
-            // どちらの地震もOFFなら何もしない
             if (!IsQuaking && !IsSimpleQuaking) return;
 
             float time = Runner.SimulationTime;
             float elapsedTime = time - QuakeStartTime;
 
-            // 階数による減衰・増幅の計算
-            float floorMultiplier = 1f + (buildingFloor * 0.1f); 
+            float floorMultiplier = 1f + (buildingFloor * 0.1f);
             float frequencyMultiplier = Mathf.Clamp(1f - (buildingFloor * 0.02f), 0.2f, 1f);
-            float baseForce = Mathf.Pow(seismicIntensity, 2f) * 10f; 
+            float baseForce = Mathf.Pow(seismicIntensity, 2f) * 10f;
 
             float verticalMultiplier = 0f;
             float pWaveMultiplier = 0f;
@@ -138,26 +135,20 @@ namespace WebGLTest.Physics
 
             if (IsQuaking)
             {
-                // --- Eキーによるフェーズ計算（パターンごと） ---
                 switch (earthquakePattern)
                 {
-                    case EarthquakePattern.Epicentral: // 直下型
-                        // 0〜0.2秒: ﾄﾞﾝｯ!! という非常に強く鋭い突き上げ
+                    case EarthquakePattern.Epicentral:
                         if (elapsedTime < 0.2f) verticalMultiplier = 7f;
-                        // 0.2〜3秒: P波（初期微動・カタカタ）
                         if (elapsedTime >= 0.2f && elapsedTime < 3f) pWaveMultiplier = 1.5f;
-                        // 2秒〜12秒: S波（主要動・激しい横揺れ）
                         if (elapsedTime >= 2f && elapsedTime < 12f)
                         {
                             float normalized = (elapsedTime - 2f) / 10f;
-                            sWaveMultiplier = Mathf.Sin(normalized * Mathf.PI); 
+                            sWaveMultiplier = Mathf.Sin(normalized * Mathf.PI);
                         }
                         break;
 
-                    case EarthquakePattern.Megathrust: // 海溝型
-                        // 0〜8秒: 長いP波（遠くから来るカタカタ）
+                    case EarthquakePattern.Megathrust:
                         if (elapsedTime < 8f) pWaveMultiplier = 0.3f;
-                        // 5〜30秒: 巨大で長いS波
                         if (elapsedTime >= 5f && elapsedTime < 30f)
                         {
                             float normalized = (elapsedTime - 5f) / 25f;
@@ -166,29 +157,23 @@ namespace WebGLTest.Physics
                         break;
                 }
 
-                // 終了判定
                 if (elapsedTime > 35f)
                 {
                     IsQuaking = false;
                 }
             }
-            
+
             if (IsSimpleQuaking)
             {
-                // --- Tキーによる単純な横揺れ（常に一定の波） ---
-                sWaveMultiplier = 1f; // S波をフルで適用し続ける
+                sWaveMultiplier = 1f;
             }
 
-            // --- 波の生成 ---
-            // P波（速い微振動）
             float pWaveX = (Mathf.PerlinNoise(time * 25f, 0) - 0.5f) * pWaveMultiplier;
             float pWaveZ = (Mathf.PerlinNoise(0, time * 25f) - 0.5f) * pWaveMultiplier;
-            
-            // S波（大きな横揺れ）
+
             float sWaveX = (Mathf.Sin(time * 12f * frequencyMultiplier) * 0.5f + Mathf.Sin(time * 5f * frequencyMultiplier) * 1.0f) * sWaveMultiplier;
             float sWaveZ = (Mathf.Cos(time * 11f * frequencyMultiplier) * 0.5f + Mathf.Sin(time * 4f * frequencyMultiplier) * 1.0f) * sWaveMultiplier;
 
-            // 縦揺れ（ﾄﾞﾝｯ!! という鋭い突き上げの波形を作るため高周波のSin波を使用）
             float sharpJolt = Mathf.Sin(elapsedTime * 80f) * verticalMultiplier;
             float verticalY = (Mathf.PerlinNoise(time * 15f, time * 15f) - 0.5f) * (pWaveMultiplier * 0.2f) + sharpJolt;
 
@@ -197,10 +182,8 @@ namespace WebGLTest.Physics
             foreach (var rb in _rigidbodies)
             {
                 if (rb == null) continue;
-
                 if (!rb.isKinematic)
                 {
-                    // 重いオブジェクトも軽いオブジェクトと同じ加速度で揺れるようにmassを掛ける
                     rb.AddForce(earthquakeForce * rb.mass, ForceMode.Force);
                 }
             }

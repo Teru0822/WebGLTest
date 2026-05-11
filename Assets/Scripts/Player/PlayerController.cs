@@ -11,8 +11,8 @@ namespace WebGLTest.Player
     public class PlayerController : NetworkBehaviour
     {
         [Header("Movement")]
-        public float moveSpeed = 5f;
-        public float jumpForce = 5f;
+        public float moveSpeed = 12f;
+        public float jumpForce = 7f;
 
         [Header("Camera")]
         [Tooltip("頭に付いているカメラオブジェクトのTransformを指定してください")]
@@ -57,6 +57,10 @@ namespace WebGLTest.Player
             // カメラの有効化/無効化設定
             if (HasInputAuthority)
             {
+                // 自分のプレイヤーは予測した最新tickをそのまま描画（補間ディレイを排除）。
+                // RTTを跨ぐ往復を待たずに自分の入力が即反映されるようになる。
+                Object.RenderSource = RenderSource.Latest;
+
                 // 自分のプレイヤーの場合：カメラとAudioListenerを有効化
                 if (cameraTransform != null)
                 {

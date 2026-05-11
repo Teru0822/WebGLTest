@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using WebGLTest.Network;
+using WebGLTest.Platform;
 
 namespace WebGLTest.Player
 {
@@ -16,9 +17,11 @@ namespace WebGLTest.Player
         [Tooltip("プレイヤーのPrefab 'p' を割り当てます")]
         public NetworkPrefabRef playerPrefab;
 
+        private const int MaxPlayers = 16;
+
         private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-        
-        private Vector3[] _spawnPositions = new Vector3[4];
+
+        private Vector3[] _spawnPositions = new Vector3[MaxPlayers];
         private int _spawnIndex = 0;
 
         // Input state
@@ -27,10 +30,21 @@ namespace WebGLTest.Player
         private float _yaw;
         private float _pitch;
 
+        private bool _isMobile;
+        private MobileTouchControls _mobileControls;
+
         private void Awake()
         {
-            // Spawn1〜4の座標を取得
-            for (int i = 0; i < 4; i++)
+            _isMobile = PlatformDetect.IsMobile();
+            if (_isMobile)
+            {
+                var go = new GameObject("MobileTouchControls");
+                go.transform.SetParent(transform, false);
+                _mobileControls = go.AddComponent<MobileTouchControls>();
+            }
+
+            // Spawn1〜16の座標を取得
+            for (int i = 0; i < MaxPlayers; i++)
             {
                 GameObject spawnObj = GameObject.Find($"Spawn{i + 1}");
                 if (spawnObj != null)
@@ -45,15 +59,29 @@ namespace WebGLTest.Player
                 }
             }
 
-            // WebGLやエディタ上でのマウスクリック時にカーソルをロックする
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            // WebGLではユーザージェスチャ無しにPointer Lockを要求するとブラウザに拒否されるため、
+            // 起動時には何もせず Update() 内のクリック検知でロックする。
         }
 
         private void Update()
         {
             // --- 入力の収集 (ローカルクライアントでのみ行われる) ---
 
+            if (_isMobile)
+            {
+                // スマホ: タッチコントロールから読み取る
+                if (_mobileControls != null)
+                {
+                    _moveInput = _mobileControls.MoveInput;
+                    var look = _mobileControls.LookDelta;
+                    _yaw += look.x;
+                    _pitch -= look.y;
+                }
+                _pitch = Mathf.Clamp(_pitch, -85f, 85f);
+                return;
+            }
+
+            // --- 以下はPC（キーボード+マウス）---
 #if ENABLE_INPUT_SYSTEM
             if (UnityEngine.InputSystem.Keyboard.current != null)
             {
@@ -72,8 +100,16 @@ namespace WebGLTest.Player
             if (UnityEngine.InputSystem.Mouse.current != null)
             {
                 var delta = UnityEngine.InputSystem.Mouse.current.delta.ReadValue();
-                _yaw += delta.x * 0.1f;
-                _pitch -= delta.y * 0.1f;
+                _yaw += delta.x * 0.25f;
+                _pitch -= delta.y * 0.25f;
+
+                // クリック（=ユーザージェスチャ）でカーソルロック。WebGLのPointer Lock制約対応。
+                if (Cursor.lockState != CursorLockMode.Locked &&
+                    UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
             }
 #else
             _moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
@@ -85,8 +121,14 @@ namespace WebGLTest.Player
 
             float mouseX = Input.GetAxis("Mouse X");
             float mouseY = Input.GetAxis("Mouse Y");
-            _yaw += mouseX * 2f;
-            _pitch -= mouseY * 2f;
+            _yaw += mouseX * 4f;
+            _pitch -= mouseY * 4f;
+
+            if (Cursor.lockState != CursorLockMode.Locked && Input.GetMouseButtonDown(0))
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
 #endif
 
             // カメラの上下の回転を制限
@@ -104,6 +146,9 @@ namespace WebGLTest.Player
             }
         }
 
+        // サーバー側で各プレイヤーの最後に受信した入力を保持。OnInputMissing で再利用する。
+        private Dictionary<PlayerRef, NetworkInputData> _lastReceivedInputs = new Dictionary<PlayerRef, NetworkInputData>();
+
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
             var data = new NetworkInputData();
@@ -118,12 +163,23 @@ namespace WebGLTest.Player
             _jumpInput = false;
         }
 
+        // 重要: tickごとの入力が届かなかった場合、Fusion はデフォルト(=ゼロ)の入力で進めてしまい、
+        // サーバーから見たプレイヤーが半分の速度で動くなどの症状が出る。
+        // 直前に受信した入力を再利用することで欠落耐性を持たせる。
+        public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
+        {
+            if (_lastReceivedInputs.TryGetValue(player, out var lastData))
+            {
+                input.Set(lastData);
+            }
+        }
+
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
             if (runner.IsServer)
             {
                 // 接続順でSpawn座標を決定
-                Vector3 spawnPos = _spawnPositions[_spawnIndex % 4];
+                Vector3 spawnPos = _spawnPositions[_spawnIndex % MaxPlayers];
                 _spawnIndex++;
 
                 // プレイヤーを生成
@@ -142,7 +198,6 @@ namespace WebGLTest.Player
         }
 
         // --- 使わないコールバック群 ---
-        public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
         public void OnConnectedToServer(NetworkRunner runner) { }
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
